@@ -154,10 +154,16 @@ To release this crate:
    changes while it is below 1.0, the patch version otherwise.
 2. Move its `CHANGELOG.md` entries under the new version and date.
 3. Merge the changes into `main`.
-4. Run the **Release** workflow from the Actions tab on `main`. It
-   requires a `CRATES_TOKEN` repository secret with permission to publish the crate. It
-   publishes the crate to crates.io and creates a `v<version>` GitHub
-   release.
+4. Create and push a tag matching the package version:
+   ```bash
+   git tag v<version>
+   git push origin v<version>
+   ```
+   Pushing a `v*` tag runs the **Release** workflow. It verifies that the tag
+   matches `Cargo.toml`, checks the package, publishes it to crates.io, and
+   creates a GitHub release with generated notes. Publishing requires a
+   `CRATES_TOKEN` repository secret with permission to publish this crate.
+   The workflow can also be run manually by selecting an existing version tag.
 
 ## Reporting Bugs
 

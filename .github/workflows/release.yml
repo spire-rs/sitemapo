@@ -1,6 +1,8 @@
 name: Release
 
 on:
+  push:
+    tags: ["v*"]
   workflow_dispatch:
 
 permissions:
@@ -15,7 +17,7 @@ env:
 
 jobs:
   publish:
-    if: github.ref == 'refs/heads/main'
+    if: startsWith(github.ref, 'refs/tags/v')
     name: Publish sitemapo
     runs-on: ubuntu-latest
     steps:
@@ -38,6 +40,10 @@ jobs:
           set -euo pipefail
           version=$(cargo metadata --no-deps --format-version 1 \
             | jq -er --arg crate "$CRATE" '.packages[] | select(.name == $crate) | .version')
+          if [ "$GITHUB_REF_NAME" != "v$version" ]; then
+            echo "::error::Tag $GITHUB_REF_NAME does not match Cargo.toml version v$version"
+            exit 1
+          fi
           echo "VERSION=$version" >> "$GITHUB_OUTPUT"
 
       - name: Verify package
@@ -51,6 +57,7 @@ jobs:
       - name: Create release
         run: |
           gh release create v${{ steps.version.outputs.VERSION }} \
+            --verify-tag \
             --title "sitemapo v${{ steps.version.outputs.VERSION }}" \
             --generate-notes
         env:
